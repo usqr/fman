@@ -328,6 +328,67 @@ def test_settings_panel(h):
     time.sleep(0.5)
     h.screenshot('09_settings_closed')
 
+def test_preview_types(h):
+    """Test preview pane for all content types: folder, text, image."""
+    project_dir = str(_PROJECT_DIR)
+    icons_dir = str(_PROJECT_DIR / 'src' / 'main' / 'icons' / 'base')
+
+    def _focus_and_preview(pane_index=0):
+        """Focus the file view and toggle preview via run_command."""
+        widget_panes = h._main_window.get_panes()
+        widget_panes[pane_index]._file_view.setFocus()
+        api_panes = h._window.get_panes()
+        api_panes[pane_index].run_command('toggle_preview')
+
+    def _navigate_to_file(filename, pane_index=0):
+        """Move cursor to a specific filename in the current listing."""
+        def _find():
+            panes = h._main_window.get_panes()
+            pane = panes[pane_index]
+            model = pane._model
+            view = pane._file_view
+            for row in range(model.rowCount()):
+                idx = model.index(row, 0)
+                name = model.data(idx, Qt.DisplayRole)
+                if name == filename:
+                    view.setCurrentIndex(idx)
+                    return True
+            return False
+        return h.run_on_ui(_find)
+
+    # ── Folder preview ────────────────────────────────────────────────
+    h.navigate(0, project_dir)
+    time.sleep(0.3)
+    _navigate_to_file('src')
+    time.sleep(0.2)
+    h.run_on_ui(_focus_and_preview)
+    time.sleep(0.8)
+    h.screenshot('preview_folder')
+    print('  folder preview captured')
+
+    # ── Text preview ──────────────────────────────────────────────────
+    _navigate_to_file('README.md')
+    time.sleep(0.2)
+    h.run_on_ui(lambda: h._main_window.get_panes()[0]._file_view.setFocus() or None)
+    time.sleep(0.5)
+    h.screenshot('preview_text')
+    print('  text preview captured')
+
+    # ── Image preview ─────────────────────────────────────────────────
+    h.navigate(0, icons_dir)
+    time.sleep(0.3)
+    _navigate_to_file('64.png')
+    time.sleep(0.2)
+    h.run_on_ui(lambda: h._main_window.get_panes()[0]._file_view.setFocus() or None)
+    time.sleep(0.5)
+    h.screenshot('preview_image')
+    print('  image preview captured')
+
+    # Close preview
+    h.run_on_ui(_focus_and_preview)
+    time.sleep(0.3)
+
+
 def test_dual_pane_navigation(h):
     """Navigate both panes to different directories."""
     h.navigate(0, os.path.expanduser('~/Desktop'))
@@ -358,6 +419,7 @@ ALL_TESTS = [
     ('navigation', test_navigation),
     ('cursor_movement', test_cursor_movement),
     ('preview_panel', test_preview_panel),
+    ('preview_types', test_preview_types),
     ('settings_panel', test_settings_panel),
     ('dual_pane', test_dual_pane_navigation),
     ('widget_tree', test_widget_tree),
