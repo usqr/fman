@@ -822,10 +822,14 @@ def _build_override_qss(c):
 	)
 
 	rules.append(
-		'QTableView, QMessageBox, QDialog, QListView { background-color: %s; '
-		'alternate-background-color: %s; }'
+		'QTableView, QMessageBox, QDialog, QListView, QPlainTextEdit '
+		'{ background-color: %s; alternate-background-color: %s; }'
 		% (c.get('base_bg', _DEFAULTS['base_bg']),
 		   c.get('alternate_bg', _DEFAULTS['alternate_bg']))
+	)
+	rules.append(
+		'QPlainTextEdit { color: %s; }'
+		% c.get('text_primary', _DEFAULTS['text_primary'])
 	)
 
 	rules.append(
